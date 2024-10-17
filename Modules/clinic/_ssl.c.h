@@ -912,6 +912,40 @@ _ssl__SSLContext_set_default_verify_paths(PySSLContext *self, PyObject *Py_UNUSE
     return _ssl__SSLContext_set_default_verify_paths_impl(self);
 }
 
+PyDoc_STRVAR(_ssl__SSLContext_set_echconfig__doc__,
+"set_echconfig($self, echconfig, /)\n"
+"--\n"
+"\n"
+"Set the ECH configuration on the SSL context.\n"
+"\n"
+"The echconfig parameter should be a bytes-like object containing the raw ECH configuration.");
+
+#define _SSL__SSLCONTEXT_SET_ECHCONFIG_METHODDEF    \
+    {"set_echconfig", (PyCFunction)_ssl__SSLContext_set_echconfig, METH_O, _ssl__SSLContext_set_echconfig__doc__},
+
+static PyObject *
+_ssl__SSLContext_set_echconfig_impl(PySSLContext *self, Py_buffer *echconfig);
+
+static PyObject *
+_ssl__SSLContext_set_echconfig(PySSLContext *self, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    Py_buffer echconfig = {NULL, NULL};
+
+    if (PyObject_GetBuffer(arg, &echconfig, PyBUF_SIMPLE) != 0) {
+        goto exit;
+    }
+    return_value = _ssl__SSLContext_set_echconfig_impl(self, &echconfig);
+
+exit:
+    /* Cleanup for echconfig */
+    if (echconfig.obj) {
+       PyBuffer_Release(&echconfig);
+    }
+
+    return return_value;
+}
+
 PyDoc_STRVAR(_ssl__SSLContext_set_ecdh_curve__doc__,
 "set_ecdh_curve($self, name, /)\n"
 "--\n"
@@ -1663,4 +1697,4 @@ exit:
 #ifndef _SSL_ENUM_CRLS_METHODDEF
     #define _SSL_ENUM_CRLS_METHODDEF
 #endif /* !defined(_SSL_ENUM_CRLS_METHODDEF) */
-/*[clinic end generated code: output=28a22f2b09d631cb input=a9049054013a1b77]*/
+/*[clinic end generated code: output=22f7337b19e2a265 input=a9049054013a1b77]*/

@@ -69,6 +69,7 @@
 #include "openssl/rand.h"
 #include "openssl/bio.h"
 #include "openssl/dh.h"
+#include "openssl/ech.h"
 
 #ifndef OPENSSL_THREADS
 #  error "OPENSSL_THREADS is not defined, Python requires thread-safe OpenSSL"
@@ -4318,6 +4319,30 @@ _ssl__SSLContext_set_default_verify_paths_impl(PySSLContext *self)
 }
 
 /*[clinic input]
+_ssl._SSLContext.set_echconfig
+
+    echconfig: Py_buffer
+    /
+
+Set the ECH configuration on the SSL context.
+
+The echconfig parameter should be a bytes-like object containing the raw ECH configuration.
+[clinic start generated code]*/
+
+static PyObject *
+_ssl__SSLContext_set_echconfig_impl(PySSLContext *self, Py_buffer *echconfig)
+/*[clinic end generated code: output=00a2499147bbd79c input=b6305ac58e99d107]*/
+{
+    if (!SSL_CTX_ech_set1_echconfig(self->ctx, echconfig->buf, echconfig->len)) {
+        _setSSLError(NULL, NULL, 0, __FILE__, __LINE__);
+        return NULL;
+    }
+
+    PyBuffer_Release(echconfig);
+    Py_RETURN_NONE;
+}
+
+/*[clinic input]
 _ssl._SSLContext.set_ecdh_curve
     name: object
     /
@@ -4950,6 +4975,7 @@ static struct PyMethodDef context_methods[] = {
     _SSL__SSLCONTEXT_SESSION_STATS_METHODDEF
     _SSL__SSLCONTEXT_SET_DEFAULT_VERIFY_PATHS_METHODDEF
     _SSL__SSLCONTEXT_SET_ECDH_CURVE_METHODDEF
+    _SSL__SSLCONTEXT_SET_ECHCONFIG_METHODDEF
     _SSL__SSLCONTEXT_CERT_STORE_STATS_METHODDEF
     _SSL__SSLCONTEXT_GET_CA_CERTS_METHODDEF
     _SSL__SSLCONTEXT_GET_CIPHERS_METHODDEF
@@ -6153,6 +6179,11 @@ sslmodule_init_constants(PyObject *m)
     ADD_OPTION("OP_NO_TICKET", SSL_OP_NO_TICKET);
     ADD_OPTION("OP_LEGACY_SERVER_CONNECT",
                             SSL_OP_LEGACY_SERVER_CONNECT);
+    ADD_OPTION("OP_ECH_GREASE", SSL_OP_ECH_GREASE);
+    ADD_OPTION("OP_ECH_TRIALDECRYPT", SSL_OP_ECH_TRIALDECRYPT);
+    ADD_OPTION("OP_ECH_IGNORE_CID", SSL_OP_ECH_IGNORE_CID);
+    ADD_OPTION("OP_ECH_GREASE_RETRY_CONFIG", SSL_OP_ECH_GREASE_RETRY_CONFIG);
+    ADD_OPTION("OP_ECH_SPECIFIC_PADDING", SSL_OP_ECH_SPECIFIC_PADDING);
 #ifdef SSL_OP_SINGLE_ECDH_USE
     ADD_OPTION("OP_SINGLE_ECDH_USE", SSL_OP_SINGLE_ECDH_USE);
 #endif
