@@ -6,6 +6,7 @@ preserve
 #  include "pycore_gc.h"          // PyGC_Head
 #  include "pycore_runtime.h"     // _Py_ID()
 #endif
+#include "pycore_critical_section.h"// Py_BEGIN_CRITICAL_SECTION()
 #include "pycore_modsupport.h"    // _PyArg_CheckPositional()
 
 PyDoc_STRVAR(_ssl__SSLSocket_do_handshake__doc__,
@@ -126,6 +127,77 @@ static PyObject *
 _ssl__SSLSocket_get_unverified_chain(PySSLSocket *self, PyObject *Py_UNUSED(ignored))
 {
     return _ssl__SSLSocket_get_unverified_chain_impl(self);
+}
+
+PyDoc_STRVAR(_ssl__SSLSocket_get_ech_status__doc__,
+"get_ech_status($self, /)\n"
+"--\n"
+"\n");
+
+#define _SSL__SSLSOCKET_GET_ECH_STATUS_METHODDEF    \
+    {"get_ech_status", (PyCFunction)_ssl__SSLSocket_get_ech_status, METH_NOARGS, _ssl__SSLSocket_get_ech_status__doc__},
+
+static PyObject *
+_ssl__SSLSocket_get_ech_status_impl(PySSLSocket *self);
+
+static PyObject *
+_ssl__SSLSocket_get_ech_status(PySSLSocket *self, PyObject *Py_UNUSED(ignored))
+{
+    return _ssl__SSLSocket_get_ech_status_impl(self);
+}
+
+PyDoc_STRVAR(_ssl__SSLSocket_get_ech_retry_config__doc__,
+"get_ech_retry_config($self, /)\n"
+"--\n"
+"\n");
+
+#define _SSL__SSLSOCKET_GET_ECH_RETRY_CONFIG_METHODDEF    \
+    {"get_ech_retry_config", (PyCFunction)_ssl__SSLSocket_get_ech_retry_config, METH_NOARGS, _ssl__SSLSocket_get_ech_retry_config__doc__},
+
+static PyObject *
+_ssl__SSLSocket_get_ech_retry_config_impl(PySSLSocket *self);
+
+static PyObject *
+_ssl__SSLSocket_get_ech_retry_config(PySSLSocket *self, PyObject *Py_UNUSED(ignored))
+{
+    return _ssl__SSLSocket_get_ech_retry_config_impl(self);
+}
+
+PyDoc_STRVAR(_ssl__SSLSocket_set_outer_server_name__doc__,
+"set_outer_server_name($self, outer_server_name, /)\n"
+"--\n"
+"\n");
+
+#define _SSL__SSLSOCKET_SET_OUTER_SERVER_NAME_METHODDEF    \
+    {"set_outer_server_name", (PyCFunction)_ssl__SSLSocket_set_outer_server_name, METH_O, _ssl__SSLSocket_set_outer_server_name__doc__},
+
+static PyObject *
+_ssl__SSLSocket_set_outer_server_name_impl(PySSLSocket *self,
+                                           const char *outer_server_name);
+
+static PyObject *
+_ssl__SSLSocket_set_outer_server_name(PySSLSocket *self, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    const char *outer_server_name;
+
+    if (!PyUnicode_Check(arg)) {
+        _PyArg_BadArgument("set_outer_server_name", "argument", "str", arg);
+        goto exit;
+    }
+    Py_ssize_t outer_server_name_length;
+    outer_server_name = PyUnicode_AsUTF8AndSize(arg, &outer_server_name_length);
+    if (outer_server_name == NULL) {
+        goto exit;
+    }
+    if (strlen(outer_server_name) != (size_t)outer_server_name_length) {
+        PyErr_SetString(PyExc_ValueError, "embedded null character");
+        goto exit;
+    }
+    return_value = _ssl__SSLSocket_set_outer_server_name_impl(self, outer_server_name);
+
+exit:
+    return return_value;
 }
 
 PyDoc_STRVAR(_ssl__SSLSocket_shared_ciphers__doc__,
@@ -536,6 +608,67 @@ exit:
     return return_value;
 }
 
+PyDoc_STRVAR(_ssl__SSLContext__set_outer_alpn_protocols__doc__,
+"_set_outer_alpn_protocols($self, protos, /)\n"
+"--\n"
+"\n");
+
+#define _SSL__SSLCONTEXT__SET_OUTER_ALPN_PROTOCOLS_METHODDEF    \
+    {"_set_outer_alpn_protocols", (PyCFunction)_ssl__SSLContext__set_outer_alpn_protocols, METH_O, _ssl__SSLContext__set_outer_alpn_protocols__doc__},
+
+static PyObject *
+_ssl__SSLContext__set_outer_alpn_protocols_impl(PySSLContext *self,
+                                                Py_buffer *protos);
+
+static PyObject *
+_ssl__SSLContext__set_outer_alpn_protocols(PySSLContext *self, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    Py_buffer protos = {NULL, NULL};
+
+    if (PyObject_GetBuffer(arg, &protos, PyBUF_SIMPLE) != 0) {
+        goto exit;
+    }
+    Py_BEGIN_CRITICAL_SECTION(self);
+    return_value = _ssl__SSLContext__set_outer_alpn_protocols_impl(self, &protos);
+    Py_END_CRITICAL_SECTION();
+
+exit:
+    /* Cleanup for protos */
+    if (protos.obj) {
+       PyBuffer_Release(&protos);
+    }
+
+    return return_value;
+}
+
+#if defined(_ssl__SSLContext_verify_mode_HAS_DOCSTR)
+#  define _ssl__SSLContext_verify_mode_DOCSTR _ssl__SSLContext_verify_mode__doc__
+#else
+#  define _ssl__SSLContext_verify_mode_DOCSTR NULL
+#endif
+#if defined(_SSL__SSLCONTEXT_VERIFY_MODE_GETSETDEF)
+#  undef _SSL__SSLCONTEXT_VERIFY_MODE_GETSETDEF
+#  define _SSL__SSLCONTEXT_VERIFY_MODE_GETSETDEF {"verify_mode", (getter)_ssl__SSLContext_verify_mode_get, (setter)_ssl__SSLContext_verify_mode_set, _ssl__SSLContext_verify_mode_DOCSTR},
+#else
+#  define _SSL__SSLCONTEXT_VERIFY_MODE_GETSETDEF {"verify_mode", (getter)_ssl__SSLContext_verify_mode_get, NULL, _ssl__SSLContext_verify_mode_DOCSTR},
+#endif
+
+static PyObject *
+_ssl__SSLContext_verify_mode_get_impl(PySSLContext *self);
+
+static PyObject *
+_ssl__SSLContext_verify_mode_get(PySSLContext *self, void *Py_UNUSED(context))
+{
+    PyObject *return_value = NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(self);
+    return_value = _ssl__SSLContext_verify_mode_get_impl(self);
+    Py_END_CRITICAL_SECTION();
+
+    return return_value;
+}
+
 PyDoc_STRVAR(_ssl__SSLContext_load_cert_chain__doc__,
 "load_cert_chain($self, /, certfile, keyfile=None, password=None)\n"
 "--\n"
@@ -910,6 +1043,41 @@ static PyObject *
 _ssl__SSLContext_set_default_verify_paths(PySSLContext *self, PyObject *Py_UNUSED(ignored))
 {
     return _ssl__SSLContext_set_default_verify_paths_impl(self);
+}
+
+PyDoc_STRVAR(_ssl__SSLContext_set_ech_config__doc__,
+"set_ech_config($self, ech_config, /)\n"
+"--\n"
+"\n"
+"Set the ECH configuration on the SSL context.\n"
+"\n"
+"The echconfig parameter should be a bytes-like object containing the raw ECH configuration.");
+
+#define _SSL__SSLCONTEXT_SET_ECH_CONFIG_METHODDEF    \
+    {"set_ech_config", (PyCFunction)_ssl__SSLContext_set_ech_config, METH_O, _ssl__SSLContext_set_ech_config__doc__},
+
+static PyObject *
+_ssl__SSLContext_set_ech_config_impl(PySSLContext *self,
+                                     Py_buffer *ech_config);
+
+static PyObject *
+_ssl__SSLContext_set_ech_config(PySSLContext *self, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    Py_buffer ech_config = {NULL, NULL};
+
+    if (PyObject_GetBuffer(arg, &ech_config, PyBUF_SIMPLE) != 0) {
+        goto exit;
+    }
+    return_value = _ssl__SSLContext_set_ech_config_impl(self, &ech_config);
+
+exit:
+    /* Cleanup for ech_config */
+    if (ech_config.obj) {
+       PyBuffer_Release(&ech_config);
+    }
+
+    return return_value;
 }
 
 PyDoc_STRVAR(_ssl__SSLContext_set_ecdh_curve__doc__,
@@ -1663,4 +1831,4 @@ exit:
 #ifndef _SSL_ENUM_CRLS_METHODDEF
     #define _SSL_ENUM_CRLS_METHODDEF
 #endif /* !defined(_SSL_ENUM_CRLS_METHODDEF) */
-/*[clinic end generated code: output=28a22f2b09d631cb input=a9049054013a1b77]*/
+/*[clinic end generated code: output=1f5d2912c28a88f2 input=a9049054013a1b77]*/
